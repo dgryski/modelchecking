@@ -81,6 +81,14 @@ proctype worker(byte id) {
     atomic {
         assert(locks[0] == id);
         locks[0] = 0;
+
+        if
+        :: locks[2] == id -> locks[2] = 0
+        :: else
+        fi
+
+        assert(locks[1] != id);
+        assert(locks[3] != id);
     }
 
 endExit:
