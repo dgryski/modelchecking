@@ -50,7 +50,7 @@ proctype worker(byte id) {
                     gotLock = false;
                     if
                     :: !locks[2] -> locks[2]=id; gotLock=true;
-                    :: else
+                    :: else -> assert(locks[2] > id);
                     fi
                 }
 
