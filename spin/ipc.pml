@@ -54,10 +54,9 @@ proctype worker(byte id) {
                     fi
                 }
 
-                atomic { assert(locks[1] == id); locks[1]=0; }
                 if
-                :: !gotLock -> goto endExit;
-                :: else -> held=2;
+                :: !gotLock -> atomic { assert(locks[1]==id); locks[1]=0; goto endExit; }
+                :: else -> atomic { assert(locks[2] == id); locks[2]=0; }
                 fi
             :: else
             fi
