@@ -54,9 +54,10 @@ proctype worker(byte id) {
                     fi
                 }
 
+                atomic { assert(locks[1] == id); locks[1]=0; }
                 if
-                :: !gotLock -> goto endExit
-                :: else
+                :: !gotLock -> goto endExit;
+                :: else -> held=2;
                 fi
             :: else
             fi
@@ -69,7 +70,7 @@ proctype worker(byte id) {
         fi
     od
 
-    assert(locks[0] == id);
+    assert(locks[0] == id && locks[1] != id && locks[2] != id && locks[3] != id);
 
     atomic {
         assert(id > lastrun)
@@ -81,18 +82,12 @@ proctype worker(byte id) {
     atomic {
         assert(locks[0] == id);
         locks[0] = 0;
-
-        if
-        :: locks[2] == id -> locks[2] = 0
-        :: else
-        fi
-
-        assert(locks[1] != id);
-        assert(locks[3] != id);
     }
 
 endExit:
     printf("worker %d exiting\n", id);
+
+    assert(locks[0] != id && locks[1] != id && locks[2] != id && locks[3] != id);
 }
 
 init {
