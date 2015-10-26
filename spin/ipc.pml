@@ -38,7 +38,7 @@ proctype worker(byte id) {
     time == id;
     printf("worker %d starting\n", id);
 
-    trylock(3,id)
+    atomic { trylock(3,id) }
 
     if
     :: !gotLock -> incrementTime(id); goto endExit
