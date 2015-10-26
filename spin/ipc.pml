@@ -42,8 +42,9 @@ proctype worker(byte id) {
 
     if
     :: !gotLock -> incrementTime(id); goto endExit
-    :: else -> held=3
+    :: else
     fi
+    held=3
 
     do
     :: held == 0 -> break
@@ -66,9 +67,10 @@ proctype worker(byte id) {
                 }
 
                 if
-                :: gotLock -> release(2, id)
-                :: else -> release(1, id); goto endExit;
+                :: !gotLock -> release(1, id); goto endExit
+                :: else
                 fi
+                release(2, id)
             :: else
             fi
         fi
