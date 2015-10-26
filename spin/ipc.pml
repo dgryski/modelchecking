@@ -15,48 +15,59 @@ inline incrementTime(id) {
     }
 }
 
+inline trylock(lock,id) {
+        gotLock = false
+        if
+        :: !locks[lock] -> locks[lock]=id; gotLock=true;
+        :: else
+        fi
+}
+
+inline release(lock, id) {
+    atomic {
+       assert(locks[lock] == id)
+       locks[lock]=0;
+    }
+}
+
 proctype worker(byte id) {
     byte held = 0
     bool looped
+    bool gotLock
 
     time == id;
     printf("worker %d starting\n", id);
 
-    atomic {
-        if
-        :: !locks[3] -> locks[3]=id; held=3;
-        :: else -> incrementTime(id); goto endExit
-        fi
-    }
+    trylock(3,id)
+
+    if
+    :: !gotLock -> incrementTime(id); goto endExit
+    :: else -> held=3
+    fi
 
     do
     :: held == 0 -> break
     :: else
         byte next = held - 1
-        bool gotLock
-        atomic {
-            if
-            :: !locks[next] -> locks[next]=id; gotLock=true;
-            :: else
-            fi
-        }
+        atomic { trylock(next,id) }
 
         if
-        :: gotLock -> locks[held] = 0; held=next;
+        :: gotLock -> release(held,id); held=next;
         :: else
             if
             :: held == 1 ->
                 atomic {
-                    gotLock = false;
+                    trylock(2, id)
+
                     if
-                    :: !locks[2] -> locks[2]=id; gotLock=true;
-                    :: else -> assert(locks[2] > id);
+                    :: !gotLock -> assert(locks[2] > id)
+                    :: else
                     fi
                 }
 
                 if
-                :: !gotLock -> atomic { assert(locks[1]==id); locks[1]=0; goto endExit; }
-                :: else -> atomic { assert(locks[2] == id); locks[2]=0; }
+                :: gotLock -> release(2, id)
+                :: else -> release(1, id); goto endExit;
                 fi
             :: else
             fi
@@ -78,10 +89,7 @@ proctype worker(byte id) {
 
     printf("worker %d working\n", id);
 
-    atomic {
-        assert(locks[0] == id);
-        locks[0] = 0;
-    }
+    release(0, id)
 
 endExit:
     printf("worker %d exiting\n", id);
