@@ -16,11 +16,13 @@ inline incrementTime(id) {
 }
 
 inline trylock(lock,id) {
-        gotLock = false
-        if
-        :: !locks[lock] -> locks[lock]=id; gotLock=true;
-        :: else
-        fi
+        atomic {
+            gotLock = false
+            if
+            :: !locks[lock] -> locks[lock]=id; gotLock=true;
+            :: else
+            fi
+        }
 }
 
 inline release(lock, id) {
@@ -38,7 +40,7 @@ proctype worker(byte id) {
     time == id;
     printf("worker %d starting\n", id);
 
-    atomic { trylock(3,id) }
+    trylock(3,id)
 
     if
     :: !gotLock -> incrementTime(id); goto endExit
@@ -50,7 +52,7 @@ proctype worker(byte id) {
     :: held == 0 -> break
     :: else
         byte next = held - 1
-        atomic { trylock(next,id) }
+        trylock(next,id)
 
         if
         :: gotLock -> release(held,id); held=next;
