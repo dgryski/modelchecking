@@ -54,10 +54,8 @@ func invariantBananaLimit() {
 var steps int
 
 func main() {
-	// for debugging so we have a failing case
-	const broken = true
-
 	verbose := flag.Bool("v", false, "verbose")
+	broken := flag.Bool("broken", false, "run broken algorithm")
 
 	flag.Parse()
 
@@ -69,7 +67,7 @@ func main() {
 			roommates[i].State = PersonHungry
 		case PersonHungry:
 			if bananas == 0 {
-				if !broken && notePresent {
+				if !*broken && notePresent {
 					// roommate at store -- try again later
 				} else {
 					notePresent = true
