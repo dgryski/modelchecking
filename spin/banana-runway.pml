@@ -9,53 +9,56 @@ bool note;
 
 mtype = { hungry, happy, goingToStore, returningFromStore }
 
-inline buyBananas() {
+inline buyBananas(p) {
     if
-    :: carryingBananas = 0
-    :: carryingBananas = 1
-    :: carryingBananas = 2
-    :: carryingBananas = 3
-    :: carryingBananas = 4
-    :: carryingBananas = 5
-    :: carryingBananas = 6
-    :: carryingBananas = 7
-    :: carryingBananas = 8
+    :: p.carrying = 0
+    :: p.carrying = 1
+    :: p.carrying = 2
+    :: p.carrying = 3
+    :: p.carrying = 4
+    :: p.carrying = 5
+    :: p.carrying = 6
+    :: p.carrying = 7
+    :: p.carrying = 8
     fi
 }
 
-active [5] proctype person() {
-
+typedef person {
     mtype state = happy
+    byte carrying
+}
 
-    byte carryingBananas;
+active [4] proctype worker() {
+
+    person p;
 
     do
     :: if
-        :: state == happy -> atomic {
-                state = hungry;
+        :: p.state == happy -> atomic {
+                p.state = hungry;
             }
-        :: state == hungry -> atomic {
+        :: p.state == hungry -> atomic {
                 if
                 :: bananas == 0 ->
                     if
                     :: note -> /* roommate at store, try again later */
                     :: else ->
                         note = true
-                        state = goingToStore
+                        p.state = goingToStore
                     fi
                 :: else ->
                     bananas = bananas - 1
-progress:           state = happy;
+progress:           p.state = happy;
                 fi
             }
-        :: state == goingToStore -> atomic {
-                buyBananas()
-                state = returningFromStore;
+        :: p.state == goingToStore -> atomic {
+                buyBananas(p);
+                p.state = returningFromStore;
             }
-        :: state == returningFromStore -> atomic {
-            bananas = bananas + carryingBananas;
+        :: p.state == returningFromStore -> atomic {
+            bananas = bananas + p.carrying;
             note = false;
-            state = hungry;
+            p.state = hungry;
             }
         fi
     od
