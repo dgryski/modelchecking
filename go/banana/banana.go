@@ -79,6 +79,21 @@ type Person struct {
 	Carrying int
 }
 
+var invariants = []func(*context) error{
+	invariantBananaLimit,
+}
+
+func checkInvariants(ctx *context) error {
+
+	for _, f := range invariants {
+		if err := f(ctx); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func invariantBananaLimit(ctx *context) error {
 	if ctx.env.bananas <= 8 {
 		return nil
@@ -158,7 +173,7 @@ func main() {
 			break
 		}
 
-		if failure = invariantBananaLimit(ctx); failure != nil {
+		if failure = checkInvariants(ctx); failure != nil {
 			break
 		}
 
@@ -190,7 +205,7 @@ func runTransitions(data []byte, transitions []transition, verbose bool) error {
 			return err
 		}
 
-		if err := invariantBananaLimit(ctx); err != nil {
+		if err := checkInvariants(ctx); err != nil {
 			return err
 		}
 
