@@ -2,7 +2,9 @@
 package main
 
 import (
+	"errors"
 	"flag"
+	"github.com/dgryski/go-ddmin"
 	"log"
 	"os"
 )
@@ -36,11 +38,11 @@ func (ctx *context) assertFailed(s string) {
 	os.Exit(1)
 }
 
-func bananaRangeCheck(ctx *context) {
+func bananaRangeCheck(ctx *context) error {
 	if ctx.env.bananas >= 0 && ctx.env.bananas <= 100 {
-		return
+		return nil
 	}
-	ctx.assertFailed("bananas out of range: 0..100")
+	return errors.New("bananas out of range: 0..100")
 }
 
 func (ctx *context) log() {
@@ -77,15 +79,15 @@ type Person struct {
 	Carrying int
 }
 
-func invariantBananaLimit(ctx *context) {
+func invariantBananaLimit(ctx *context) error {
 	if ctx.env.bananas <= 8 {
-		return
+		return nil
 	}
 
-	ctx.assertFailed("bananas <= 8")
+	return errors.New("assertion failed: bananas <= 8")
 }
 
-func ruleStep(ctx *context, i int) {
+func ruleStep(ctx *context, i int) error {
 	switch ctx.env.roommates[i].State {
 	case PersonHappy:
 		ctx.env.roommates[i].State = PersonHungry
@@ -99,7 +101,9 @@ func ruleStep(ctx *context, i int) {
 			}
 		} else {
 			ctx.env.bananas -= 1
-			bananaRangeCheck(ctx)
+			if err := bananaRangeCheck(ctx); err != nil {
+				return err
+			}
 			ctx.env.roommates[i].State = PersonHappy
 		}
 	case PersonGoingToStore:
@@ -107,14 +111,25 @@ func ruleStep(ctx *context, i int) {
 		ctx.env.roommates[i].Carrying = int(ctx.rand.Intn(9)) // 0..8
 	case PersonReturningFromStore:
 		ctx.env.bananas += ctx.env.roommates[i].Carrying
-		bananaRangeCheck(ctx)
+		if err := bananaRangeCheck(ctx); err != nil {
+			return err
+		}
 		ctx.env.roommates[i].Carrying = 0
 		ctx.env.notePresent = false
 		ctx.env.roommates[i].State = PersonHungry
 	}
+
+	return nil
 }
 
 var broken = flag.Bool("broken", false, "run broken algorithm")
+
+type rule func(*context) error
+
+type transition struct {
+	r    rule
+	rand rng
+}
 
 func main() {
 	verbose := flag.Bool("v", false, "verbose")
@@ -123,25 +138,87 @@ func main() {
 
 	ctx := newContext()
 
-	var rules []func(*context)
+	var rules []rule
 
 	for i := range ctx.env.roommates {
 		i := i
-		rules = append(rules, func(ctx *context) { ruleStep(ctx, i) })
+		rules = append(rules, func(ctx *context) error { return ruleStep(ctx, i) })
 	}
+
+	var transitions []transition
+
+	var failure error
 
 	for {
 		r := rules[ctx.rand.Intn(uint64(len(rules)))]
 
-		r(ctx)
+		transitions = append(transitions, transition{r, ctx.rand})
 
-		invariantBananaLimit(ctx)
+		if failure = r(ctx); failure != nil {
+			break
+		}
+
+		if failure = invariantBananaLimit(ctx); failure != nil {
+			break
+		}
 
 		if *verbose {
 			ctx.log()
 		}
 		ctx.clock++
 	}
+
+	log.Println("got terminating error:", failure)
+	ctx.log()
+
+	log.Println("minimizing...")
+	b := minimize(transitions, failure)
+
+	log.Printf("minimized test run shrunk %d -> %d\n", len(transitions), len(b))
+
+	log.Println("minimal trace:")
+	runTransitions(b, transitions, true)
+}
+
+func runTransitions(data []byte, transitions []transition, verbose bool) error {
+	ctx := newContext()
+
+	for _, v := range data {
+		t := transitions[v]
+		ctx.rand = t.rand
+		if err := t.r(ctx); err != nil {
+			return err
+		}
+
+		if err := invariantBananaLimit(ctx); err != nil {
+			return err
+		}
+
+		if verbose {
+			ctx.log()
+		}
+	}
+
+	return nil
+}
+
+func minimize(transitions []transition, errWant error) []byte {
+
+	b := make([]byte, len(transitions))
+	for i := range b {
+		b[i] = byte(i)
+	}
+
+	return ddmin.Minimize(b, func(b []byte) ddmin.Result {
+		err := runTransitions(b, transitions, false)
+		if err == nil {
+			return ddmin.Pass
+		}
+		if err.Error() == errWant.Error() {
+			return ddmin.Fail
+		}
+		return ddmin.Unresolved
+	})
 }
 
 type rng uint64
