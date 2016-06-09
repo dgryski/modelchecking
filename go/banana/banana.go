@@ -197,6 +197,8 @@ func runTransitions(data []byte, transitions []transition, verbose bool) error {
 		if verbose {
 			ctx.log()
 		}
+
+		ctx.clock++
 	}
 
 	return nil
