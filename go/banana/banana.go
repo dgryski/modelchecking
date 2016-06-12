@@ -95,9 +95,8 @@ func ruleStep(ctx *runway.Context, updateOK bool, i int) (bool, error) {
 	case PersonHappy:
 		if !updateOK {
 			return true, nil
-		} else {
-			changed = true
 		}
+		changed = true
 		env.roommates[i].State = PersonHungry
 	case PersonHungry:
 		if env.bananas == 0 {
@@ -106,18 +105,16 @@ func ruleStep(ctx *runway.Context, updateOK bool, i int) (bool, error) {
 			} else {
 				if !updateOK {
 					return true, nil
-				} else {
-					changed = true
 				}
+				changed = true
 				env.notePresent = true
 				env.roommates[i].State = PersonGoingToStore
 			}
 		} else {
 			if !updateOK {
 				return true, nil
-			} else {
-				changed = true
 			}
+			changed = true
 			env.bananas -= 1
 			if err := bananaRangeCheck(ctx); err != nil {
 				return changed, err
@@ -127,17 +124,15 @@ func ruleStep(ctx *runway.Context, updateOK bool, i int) (bool, error) {
 	case PersonGoingToStore:
 		if !updateOK {
 			return true, nil
-		} else {
-			changed = true
 		}
+		changed = true
 		env.roommates[i].State = PersonReturningFromStore
 		env.roommates[i].Carrying = int(ctx.Rand.Intn(9)) // 0..8
 	case PersonReturningFromStore:
 		if !updateOK {
 			return true, nil
-		} else {
-			changed = true
 		}
+		changed = true
 		env.bananas += env.roommates[i].Carrying
 		if err := bananaRangeCheck(ctx); err != nil {
 			return changed, err
