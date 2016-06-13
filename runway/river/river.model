@@ -1,0 +1,38 @@
+
+
+/* true if crossed */
+var farmer : Boolean;
+var wolf : Boolean;
+var goat : Boolean;
+var cabbage : Boolean;
+
+rule crossFarmer {
+    if wolf != goat && goat != cabbage {
+        farmer = !farmer;
+    }
+}
+
+rule crossWolf {
+    if farmer == wolf && goat != cabbage {
+        farmer = !farmer;
+        wolf = !wolf;
+    }
+}
+
+rule crossGoat {
+    if farmer == goat {
+        farmer = !farmer;
+        goat = !goat;
+    }
+}
+
+rule crossCabbage {
+    if farmer == cabbage && wolf != goat {
+        farmer = !farmer;
+        cabbage = !cabbage;
+    }
+}
+
+invariant CantCross {
+  assert ! (goat && cabbage && wolf);
+}

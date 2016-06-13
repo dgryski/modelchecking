@@ -1,0 +1,17 @@
+{
+  "name": "runway-model-river",
+  "version": "0.1.0",
+  "description": "Farmer/Wolf/Goat/Cabbage",
+  "keywords": [
+    "runway"
+  ],
+  "author": "Damian Gryski <damian@gryski.com>",
+  "license": "MIT",
+  "models": {
+    "main": {
+      "name": "River",
+      "spec": "river.model",
+      "view": "river.js"
+    }
+  }
+}
