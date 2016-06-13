@@ -1,9 +1,5 @@
-// Package runways contains types and runtime helpers for runway models
+// Package runway contains types and runtime helpers for runway models
 package runway
-
-import (
-	"log"
-)
 
 type Environment interface {
 	Log()
@@ -16,9 +12,10 @@ type Context struct {
 	Env Environment
 }
 
-func AssertFailed(ctx *Context, assert string) {
-	log.Println("assertion failed: ", assert)
-	ctx.Env.Log()
+type AssertionFailure string
+
+func (a AssertionFailure) Error() string {
+	return "assertion failed: " + string(a)
 }
 
 type Rule struct {

@@ -2,7 +2,6 @@
 package banana
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -34,7 +33,7 @@ func bananaRangeCheck(ctx *runway.Context) error {
 	if env.bananas >= 0 && env.bananas <= 100 {
 		return nil
 	}
-	return errors.New("bananas out of range: 0..100")
+	return runway.AssertionFailure("bananas out of range: 0..100")
 }
 
 func (env *env) Log() {
@@ -83,7 +82,7 @@ func invariantBananaLimit(ctx *runway.Context) error {
 		return nil
 	}
 
-	return errors.New("assertion failed: bananas <= 8")
+	return runway.AssertionFailure("assertion failed: bananas <= 8")
 }
 
 func ruleStep(ctx *runway.Context, updateOK bool, i int) (bool, error) {
