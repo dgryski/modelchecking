@@ -8,6 +8,7 @@ import (
 	"github.com/dgryski/go-ddmin"
 
 	"github.com/dgryski/modelchecking/go/banana"
+	"github.com/dgryski/modelchecking/go/river"
 	"github.com/dgryski/modelchecking/go/runway"
 )
 
@@ -49,6 +50,12 @@ func main() {
 			invariants: banana.Invariants(),
 			NewEnv:     func() runway.Environment { return banana.NewEnv() },
 			rules:      banana.Rules(),
+		}
+	case "river":
+		m = &model{
+			invariants: river.Invariants(),
+			NewEnv:     func() runway.Environment { return river.NewEnv() },
+			rules:      river.Rules(),
 		}
 	}
 
