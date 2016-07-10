@@ -1,0 +1,74 @@
+
+type Table: 0..5;
+
+type Philosopher : record {
+    state : either {
+        Happy,
+        Hungry,
+        ForkOne,
+        ForkTwo,
+        Eating,
+    },
+    forkOne : Table,
+    forkTwo : Table,
+};
+
+var phils : Array<Philosopher>[Table];
+var forks : Array<Boolean>[Table];
+var forkOwner : Array<Table>[Table];
+
+rule step for pid, p in phils {
+    match p.state {
+        Happy {
+            p.state = Hungry;
+        }
+        Hungry {
+            p.state = ForkOne;
+        }
+        ForkOne {
+            if forks[p.forkOne] == False {
+                forks[p.forkOne] = True;
+                forkOwner[p.forkOne] = pid;
+                p.state = ForkTwo;
+            }
+        }
+        ForkTwo {
+            if forks[p.forkTwo] == False {
+                forks[p.forkTwo] = True;
+                forkOwner[p.forkTwo] = pid;
+                p.state = Eating;
+            }
+        }
+        Eating {
+            // nom nom nom
+            p.state = Happy;
+            forks[p.forkOne] = False;
+            forks[p.forkTwo] = False;
+        }
+    }
+}
+
+invariant eatsWithForks {
+    for pid, p in phils {
+            if p.state == Eating {
+            assert(forks[p.forkOne]==True && forkOwner[p.forkOne]==pid);
+            assert(forks[p.forkTwo]==True && forkOwner[p.forkTwo]==pid);
+        }
+     }
+}
+
+function init() {
+  for pid, p in phils {
+    p.forkOne = pid;
+    p.forkTwo = (pid+1) % 5;
+
+    // ordering for resources to prevent deadlock
+    if p.forkTwo < p.forkOne {
+        var swap : Table = p.forkTwo;
+        p.forkTwo = p.forkOne;
+        p.forkOne = swap;
+    }
+  }
+}
+
+init();
