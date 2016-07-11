@@ -32,12 +32,15 @@ active [4] proctype worker() {
 
     person p;
 
+    bool ate;
+
     do
     :: if
         :: p.state == happy -> atomic {
                 p.state = hungry;
             }
         :: p.state == hungry -> atomic {
+                ate=false;
                 if
                 :: bananas == 0 ->
                     if
@@ -47,10 +50,15 @@ active [4] proctype worker() {
                         p.state = goingToStore
                     fi
                 :: else ->
-                    bananas = bananas - 1
-progress:           p.state = happy;
+                    bananas = bananas - 1;
+                    ate = true;
                 fi
             }
+            if
+            :: ate == true ->
+progress:      p.state = happy;
+            :: else ->
+            fi
         :: p.state == goingToStore -> atomic {
                 buyBananas(p);
                 p.state = returningFromStore;
