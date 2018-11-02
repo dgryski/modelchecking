@@ -1,4 +1,4 @@
-
+// model for https://metacpan.org/pod/IPC::ConcurrencyLimit::WithLatestStandby
 /* 0 if not held, otherwise id of worker */
 byte locks[4];
 
