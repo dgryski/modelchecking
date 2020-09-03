@@ -12,6 +12,31 @@
 #define LIMIT 4
 #endif
 
+/*
+func FindAll() []P {
+   pss, err := ps.Processes()
+   [...]
+   found := make(chan P)
+   limitCh := make(chan struct{}, concurrencyProcesses)
+
+   for _, pr := range pss {
+      limitCh <- struct{}{}
+      pr := pr
+      go func() {
+         defer func() { <-limitCh }()
+         [... get a P with some error checking ...]
+         found <- P
+      }()
+   }
+   [...]
+
+   var results []P
+   for p := range found {
+      results = append(results, p)
+   }
+   return results
+}
+*/
 
 chan foundCh = [0] of { bool };
 chan limitCh = [LIMIT] of { bool };
