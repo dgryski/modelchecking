@@ -1,7 +1,20 @@
 // model for https://utcc.utoronto.ca/~cks/space/blog/programming/GoConcurrencyStillNotEasy
 
+// user configurable values
+
+// number of processes to scan through
+#ifndef NUM_PROCESSES
+#define NUM_PROCESSES  10
+#endif
+
+// concurrency limit; program hangs is LIMIT < NUM_PROCESSES
+#ifndef LIMIT
+#define LIMIT 4
+#endif
+
+
 chan foundCh = [0] of { bool };
-chan limitCh = [4] of { bool };
+chan limitCh = [LIMIT] of { bool };
 
 proctype find_one_buggy() {
    foundCh ! 0;
@@ -13,13 +26,13 @@ inline find_all_buggy() {
 
 	byte i;
 
-	for (i : 1 .. 10)  {
+	for (i : 1 .. NUM_PROCESSES)  {
 	    limitCh ! true;
 	    run find_one_buggy();
 	}
 
 	bool x;
-	for (i : 1 .. 10)  {
+	for (i : 1 .. NUM_PROCESSES)  {
 		 foundCh?x ;
 	}
 }
@@ -37,12 +50,12 @@ inline find_all_fixed() {
 
 	byte i;
 
-	for (i : 1 .. 10)  {
+	for (i : 1 .. NUM_PROCESSES)  {
 	    run find_one_fixed_1();
 	}
 
 	bool x;
-	for (i : 1 .. 10)  {
+	for (i : 1 .. NUM_PROCESSES)  {
 		 foundCh?x ;
 	}
 }
@@ -60,12 +73,12 @@ inline find_all_fixed_2() {
 
 	byte i;
 
-	for (i : 1 .. 10)  {
+	for (i : 1 .. NUM_PROCESSES)  {
 	    run find_one_fixed_2();
 	}
 
 	bool x;
-	for (i : 1 .. 10)  {
+	for (i : 1 .. NUM_PROCESSES)  {
 		 foundCh?x ;
 	}
 }
@@ -81,7 +94,7 @@ proctype find_one_fixed_3() {
 
 proctype for_loop() {
 	byte i;
-	for (i : 1 .. 10)  {
+	for (i : 1 .. NUM_PROCESSES)  {
 	    limitCh ! true;
 	    run find_one_buggy();
 	}
@@ -95,7 +108,7 @@ inline find_all_fixed_3() {
 	run for_loop();
 
 	bool x;
-	for (i : 1 .. 10)  {
+	for (i : 1 .. NUM_PROCESSES)  {
 		 foundCh?x ;
 	}
 }
