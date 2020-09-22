@@ -4,6 +4,7 @@ package main
 import (
 	"flag"
 	"log"
+	"time"
 
 	"github.com/dgryski/go-ddmin"
 
@@ -37,11 +38,16 @@ func main() {
 	verbose := flag.Bool("v", false, "verbose")
 
 	modelType := flag.String("model", "", "model to run")
+	seed := flag.Bool("seed", false, "use random seed")
 
 	flag.Parse()
 
 	ctx := &runway.Context{}
-	ctx.Rand = 0x123456789ABCDEF
+	if !*seed {
+		ctx.Rand = 0x123456789ABCDEF
+	} else {
+		ctx.Rand = runway.Rng(uint64(time.Now().UnixNano()))
+	}
 
 	var m *model
 	switch *modelType {
