@@ -63,6 +63,8 @@ func main() {
 			NewEnv:     func() runway.Environment { return river.NewEnv() },
 			rules:      river.Rules(),
 		}
+	default:
+		log.Fatalf("unknown model %v", *modelType)
 	}
 
 	ctx.Env = m.NewEnv()
