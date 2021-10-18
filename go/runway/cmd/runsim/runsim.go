@@ -38,13 +38,13 @@ func main() {
 	verbose := flag.Bool("v", false, "verbose")
 
 	modelType := flag.String("model", "", "model to run")
-	seed := flag.Bool("seed", false, "use random seed")
+	seed := flag.Int("seed", 0, "use random seed (0 == time)")
 
 	flag.Parse()
 
 	ctx := &runway.Context{}
-	if !*seed {
-		ctx.Rand = 0x123456789ABCDEF
+	if *seed != 0 {
+		ctx.Rand = runway.Rng(*seed)
 	} else {
 		ctx.Rand = runway.Rng(uint64(time.Now().UnixNano()))
 	}
